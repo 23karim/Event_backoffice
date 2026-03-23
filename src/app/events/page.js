@@ -6,7 +6,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Plus, LogOut, Calendar, CheckCircle2, Clock, BarChart3 } from "lucide-react";
 
-// Components
 import { ConfirmModal } from "../../components/ConfirmModal";
 import { EventCard } from "../../components/EventCard";
 import { StatCard } from "../../components/StatCard";
@@ -24,11 +23,10 @@ export default function EventsListPage() {
   const router = useRouter();
   const { logout, isAuthenticated, loading: authLoading } = useAuth();
 
-  // 1. PROTECTION ET CHARGEMENT DES DONNÉES
   useEffect(() => {
     if (!authLoading) {
       if (!isAuthenticated) {
-        router.replace("/"); // Utiliser replace pour éviter de revenir en arrière
+        router.replace("/"); 
       } else {
         fetchEvents();
       }
@@ -47,8 +45,6 @@ export default function EventsListPage() {
       setLoading(false);
     }
   };
-
-  // 2. LOGIQUE DES STATISTIQUES
   const stats = useMemo(() => {
     const now = new Date();
     return {
@@ -82,8 +78,6 @@ export default function EventsListPage() {
     }
   };
 
-  // 3. LE VERROU DE SÉCURITÉ (Anti-flash)
-  // Si on vérifie l'auth, on montre le loader plein écran
   if (authLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen bg-white">
@@ -91,13 +85,10 @@ export default function EventsListPage() {
       </div>
     );
   }
-
-  // Si pas authentifié après le chargement, on ne rend RIEN (le useEffect redirige)
   if (!isAuthenticated) return null;
 
   return (
     <div className="bg-[#F8FAFC] min-h-screen">
-      {/* NAVBAR */}
       <nav className="bg-white sticky top-0 z-50 border-b border-gray-100 shadow-sm">
         <div className="max-w-7xl mx-auto px-6 h-18 flex justify-between items-center py-4">
           <div className="flex items-center gap-2">
