@@ -48,11 +48,11 @@ export const EventCard = ({ event, onDelete, showDetailsButton = false, isFullPa
           alt={event.titre}
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
         />
-        <span className={`absolute top-3 left-3 backdrop-blur-md px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider shadow-sm transition-colors duration-300
-          ${prixNombre === 0 
-            ? 'bg-emerald-500/90 text-white' 
-            : 'bg-white/90 text-[#002FA7]'
-          }`}>
+<span className={`absolute top-3 left-3 backdrop-blur-md px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider shadow-sm transition-colors duration-300
+  ${prixNombre === 0 
+    ? 'bg-[#002FA7]/90 text-white' 
+    : 'bg-white/90 text-[#002FA7]'
+  }`}>
           {prixNombre === 0 ? "Gratuit" : `${prixNombre} DT`} 
         </span>
         <div className="absolute top-3 right-3 translate-x-2 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all">
