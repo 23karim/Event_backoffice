@@ -15,9 +15,9 @@ api.interceptors.request.use(
         
         config.headers.Authorization = `Bearer ${cleanToken}`;
         
-        console.log("🚀 API : Token nettoyé et envoyé au serveur.");
+        console.log(" API : Token nettoyé et envoyé au serveur.");
       } else {
-        console.warn("⚠️ API : Aucun token trouvé dans le localStorage.");
+        console.warn(" API : Aucun token trouvé dans le localStorage.");
       }
     }
     return config;

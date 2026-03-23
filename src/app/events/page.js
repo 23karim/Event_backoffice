@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo } from "react";
 import eventService from "../services/eventService";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Plus, LogOut, Calendar, CheckCircle2, Clock, BarChart3, Trash2 } from "lucide-react";
+import { Plus, LogOut, Calendar, CheckCircle2, Clock, BarChart3, Trash2, Search } from "lucide-react";
 
 import { ConfirmModal } from "../../components/ConfirmModal";
 import { EventCard } from "../../components/EventCard";
@@ -13,13 +13,13 @@ import { useAuth } from "../services/AuthContext";
 
 export default function EventsListPage() {
   const [events, setEvents] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [eventToDelete, setEventToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
-
   const [isDeleteAllMode, setIsDeleteAllMode] = useState(false);
 
   const router = useRouter();
@@ -48,6 +48,16 @@ export default function EventsListPage() {
     }
   };
 
+  const filteredEvents = useMemo(() => {
+    return events.filter((event) => {
+      const term = searchTerm.toLowerCase().trim();
+      return (
+        event.titre?.toLowerCase().includes(term) ||
+        event.lieu?.toLowerCase().includes(term)
+      );
+    });
+  }, [events, searchTerm]);
+
   const stats = useMemo(() => {
     const now = new Date();
     return {
@@ -57,9 +67,7 @@ export default function EventsListPage() {
     };
   }, [events]);
 
-  const handleLogout = () => {
-    logout(); 
-  };
+  const handleLogout = () => { logout(); };
 
   const openDeleteModal = (eventId) => {
     setIsDeleteAllMode(false);
@@ -104,17 +112,28 @@ export default function EventsListPage() {
   return (
     <div className="bg-[#F8FAFC] min-h-screen">
       <nav className="bg-white sticky top-0 z-50 border-b border-gray-100 shadow-sm">
-        <div className="max-w-7xl mx-auto px-6 h-18 flex justify-between items-center py-4">
-          <div className="flex items-center gap-2">
+        <div className="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center py-4 gap-8">
+
+          <div className="flex items-center gap-2 flex-shrink-0">
             <div className="w-10 h-10 bg-[#002FA7] rounded-xl flex items-center justify-center shadow-lg shadow-blue-200">
               <Calendar size={22} className="text-white" />
             </div>
-            <span className="text-xl font-black text-gray-900 tracking-tight">
+            <span className="text-xl font-black text-gray-900 tracking-tight hidden sm:block">
               EVE<span className="text-[#002FA7]">NT</span>
             </span>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="relative flex-1 max-w-md group">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#002FA7] transition-colors" size={18} />
+            <input 
+              type="text"
+              placeholder="Rechercher par titre ou par lieu..."
+              className="w-full pl-11 pr-4 py-2.5 bg-gray-50 border border-transparent rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/10 focus:bg-white focus:border-[#002FA7] transition-all text-sm font-medium"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <div className="flex items-center gap-3 flex-shrink-0">
             {events.length > 0 && (
               <button 
                 onClick={openDeleteAllModal}
@@ -127,8 +146,9 @@ export default function EventsListPage() {
 
             <Link href="/events/add" className="flex items-center gap-2 bg-[#002FA7] text-white px-5 py-2.5 rounded-xl hover:bg-[#002585] transition-all font-bold text-sm shadow-xl shadow-blue-100 active:scale-95">
               <Plus size={18} />
-              Ajouter
+              <span className="hidden md:block">Ajouter</span>
             </Link>
+            
             <button 
               onClick={handleLogout} 
               className="p-2.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors"
@@ -182,8 +202,8 @@ export default function EventsListPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {events.length > 0 ? (
-              events.map((event) => (
+            {filteredEvents.length > 0 ? (
+              filteredEvents.map((event) => (
                 <EventCard
                   key={event.id} 
                   event={event} 
@@ -193,14 +213,16 @@ export default function EventsListPage() {
                 />
               ))
             ) : (
-              <div className="col-span-full flex flex-col items-center justify-center py-12 bg-white rounded-[32px] border-2 border-dashed border-gray-100 text-center">
+              <div className="col-span-full flex flex-col items-center justify-center py-20 bg-white rounded-[32px] border-2 border-dashed border-gray-100 text-center">
                   <div className="bg-gray-50 p-8 rounded-full mb-6 text-gray-200">
-                      <Calendar size={48} />
+                    <Calendar size={48} />
                   </div>
-                  <p className="text-gray-400 font-bold text-xl mb-2">Aucun événement trouvé</p>
-                  <Link href="/events/add" className="bg-[#002FA7] text-white px-8 py-3 rounded-2xl font-bold hover:bg-[#002585] transition-all shadow-lg shadow-blue-100">
-                      Créer mon premier événement
-                  </Link>
+                  <p className="text-gray-400 font-bold text-xl mb-2">
+                    {searchTerm ? `Aucun résultat pour "${searchTerm}"` : "Aucun événement trouvé"}
+                  </p>
+                  <button onClick={() => setSearchTerm("")} className="text-[#002FA7] font-bold hover:underline">
+                    Effacer la recherche
+                  </button>
               </div>
             )}
           </div>
@@ -213,11 +235,7 @@ export default function EventsListPage() {
         onClose={() => setIsModalOpen(false)}
         onConfirm={confirmDelete}
         title={isDeleteAllMode ? "⚠️ Supprimer tout ?" : "Supprimer l'événement ?"}
-        message={
-            isDeleteAllMode 
-            ? "Êtes-vous sûr de vouloir supprimer TOUS les événements ? Cette action videra toute la base de données."
-            : "Cette action est irréversible. Toutes les données liées à cet événement seront définitivement supprimées."
-        }
+        message={isDeleteAllMode ? "Action irréversible : suppression complète de la base." : "Action irréversible."}
       />
     </div>
   );
