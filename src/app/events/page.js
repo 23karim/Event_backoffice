@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo } from "react";
 import eventService from "../services/eventService";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Plus, LogOut, Calendar, CheckCircle2, Clock, BarChart3 } from "lucide-react";
+import { Plus, LogOut, Calendar, CheckCircle2, Clock, BarChart3, Trash2 } from "lucide-react";
 
 import { ConfirmModal } from "../../components/ConfirmModal";
 import { EventCard } from "../../components/EventCard";
@@ -19,6 +19,8 @@ export default function EventsListPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [eventToDelete, setEventToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  const [isDeleteAllMode, setIsDeleteAllMode] = useState(false);
 
   const router = useRouter();
   const { logout, isAuthenticated, loading: authLoading } = useAuth();
@@ -45,6 +47,7 @@ export default function EventsListPage() {
       setLoading(false);
     }
   };
+
   const stats = useMemo(() => {
     const now = new Date();
     return {
@@ -59,22 +62,33 @@ export default function EventsListPage() {
   };
 
   const openDeleteModal = (eventId) => {
+    setIsDeleteAllMode(false);
     setEventToDelete(eventId);
+    setIsModalOpen(true);
+  };
+  const openDeleteAllModal = () => {
+    setIsDeleteAllMode(true);
     setIsModalOpen(true);
   };
 
   const confirmDelete = async () => {
-    if (!eventToDelete) return;
     setIsDeleting(true);
     try {
-      await eventService.deleteEvent(eventToDelete);
-      setEvents(events.filter((event) => event.id !== eventToDelete));
+      if (isDeleteAllMode) {
+        await eventService.deleteAllEvents();
+        setEvents([]);
+      } else {
+        if (!eventToDelete) return;
+        await eventService.deleteEvent(eventToDelete);
+        setEvents(events.filter((event) => event.id !== eventToDelete));
+      }
       setIsModalOpen(false);
     } catch (err) {
-      alert("Erreur lors de la suppression.");
+      alert(err.message || "Erreur lors de la suppression.");
     } finally {
       setIsDeleting(false);
       setEventToDelete(null);
+      setIsDeleteAllMode(false);
     }
   };
 
@@ -101,6 +115,16 @@ export default function EventsListPage() {
           </div>
 
           <div className="flex items-center gap-4">
+            {events.length > 0 && (
+              <button 
+                onClick={openDeleteAllModal}
+                className="p-2.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+                title="Supprimer tout"
+              >
+                <Trash2 size={20} />
+              </button>
+            )}
+
             <Link href="/events/add" className="flex items-center gap-2 bg-[#002FA7] text-white px-5 py-2.5 rounded-xl hover:bg-[#002585] transition-all font-bold text-sm shadow-xl shadow-blue-100 active:scale-95">
               <Plus size={18} />
               Ajouter
@@ -118,7 +142,6 @@ export default function EventsListPage() {
 
       <main className="max-w-7xl mx-auto px-6 py-12">
         <div className="mb-10">
-
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
             <StatCard 
               title="Total Events"
@@ -189,8 +212,12 @@ export default function EventsListPage() {
         isLoading={isDeleting}
         onClose={() => setIsModalOpen(false)}
         onConfirm={confirmDelete}
-        title="Supprimer l'événement ?"
-        message="Cette action est irréversible. Toutes les données liées à cet événement seront définitivement supprimées."
+        title={isDeleteAllMode ? "⚠️ Supprimer tout ?" : "Supprimer l'événement ?"}
+        message={
+            isDeleteAllMode 
+            ? "Êtes-vous sûr de vouloir supprimer TOUS les événements ? Cette action videra toute la base de données."
+            : "Cette action est irréversible. Toutes les données liées à cet événement seront définitivement supprimées."
+        }
       />
     </div>
   );

@@ -9,8 +9,6 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
-    // src/services/AuthContext.js
-
 useEffect(() => {
     const initAuth = () => {
         if (typeof window !== "undefined") {
@@ -19,56 +17,45 @@ useEffect(() => {
 
             if (token && savedUser) {
                 try {
-                    // Nettoyage au cas où le token est stocké avec des guillemets
-                    const cleanToken = token.replace(/"/g, '');
                     const parsedUser = JSON.parse(savedUser);
-                    
-                    setUser(parsedUser);
-                    console.log("✅ Session restaurée pour :", parsedUser.email);
+                    if (parsedUser.role !== 'admin') {
+                        localStorage.clear();
+                        setUser(null);
+                    } else {
+                        setUser(parsedUser);
+                    }
                 } catch (e) {
-                    console.error("Session corrompue", e);
                     localStorage.clear();
                 }
             }
-            setLoading(false); // On ne libère le chargement qu'APRES avoir tenté de restaurer l'user
+            setLoading(false);
         }
     };
     initAuth();
 }, []);
-    /*useEffect(() => {
-        const initAuth = () => {
-            if (typeof window !== "undefined") {
-                const token = localStorage.getItem('token');
-                const savedUser = localStorage.getItem('user');
-
-                if (token && savedUser) {
-                    try {
-                        setUser(JSON.parse(savedUser));
-                    } catch (e) {
-                        console.error("Erreur session corrompue", e);
-                        localStorage.clear();
-                    }
-                }
-                setLoading(false);
-            }
-        };
-        initAuth();
-    }, []);*/
-    const login = async (email, password) => {
-        try {
-            const data = await userService.login(email, password);
-            const token = data.accessToken || data.token;
+const login = async (email, password) => {
+    try {
+        const data = await userService.login(email, password);
         
-            localStorage.setItem('token', token);
-            localStorage.setItem('user', JSON.stringify(data.user));
-            localStorage.setItem('role', data.user?.role);
-            localStorage.setItem('userId', data.user?.id?.toString());
-            setUser(data.user);
-            return data;
-        } catch (error) {
-            throw error;
+        if (data.user?.role !== 'admin') {
+            throw new Error("Accès refusé : Seuls les administrateurs peuvent se connecter ici.");
         }
-    };
+
+        const token = data.accessToken || data.token;
+    
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        localStorage.setItem('role', data.user?.role);
+        localStorage.setItem('userId', data.user?.id?.toString());
+        
+        setUser(data.user);
+        return data;
+    } catch (error) {
+        localStorage.clear();
+        setUser(null);
+        throw error;
+    }
+};
     const logout = () => {
         localStorage.clear();
     

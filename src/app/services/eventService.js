@@ -54,6 +54,16 @@ getEventById: async (id) => {
       throw error;
     }
   },
+  deleteAllEvents: async () => {
+    try {
+      const response = await api.delete("/events/delete-all");
+      return response.data;
+    } catch (error) {
+      console.error("Erreur lors de la suppression massive:", error);
+      const message = error.response?.data?.message || "Impossible de supprimer tous les événements";
+      throw new Error(message);
+    }
+  },
 };
 
 export default eventService;

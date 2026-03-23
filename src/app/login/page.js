@@ -22,20 +22,21 @@ export default function LoginPage() {
     }
   }, [isAuthenticated, authLoading, router]);
 
-  const handleLogin = async (e) => {
+
+const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
     setIsLoading(true);
 
     try {
-      await login(email, password);
-
-      router.replace("/events"); 
+        await login(email, password);
+        router.replace("/events"); 
     } catch (err) {
-      setError(err.response?.data?.message || "Identifiants ou connexion impossibles");
-      setIsLoading(false);
+        const errorMessage = err.message || err.response?.data?.message || "Identifiants invalides";
+        setError(errorMessage);
+        setIsLoading(false);
     }
-  };
+};
   if (authLoading || isAuthenticated) {
     return null; 
   }
