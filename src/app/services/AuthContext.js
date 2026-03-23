@@ -9,7 +9,33 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
-    useEffect(() => {
+    // src/services/AuthContext.js
+
+useEffect(() => {
+    const initAuth = () => {
+        if (typeof window !== "undefined") {
+            const token = localStorage.getItem('token');
+            const savedUser = localStorage.getItem('user');
+
+            if (token && savedUser) {
+                try {
+                    // Nettoyage au cas où le token est stocké avec des guillemets
+                    const cleanToken = token.replace(/"/g, '');
+                    const parsedUser = JSON.parse(savedUser);
+                    
+                    setUser(parsedUser);
+                    console.log("✅ Session restaurée pour :", parsedUser.email);
+                } catch (e) {
+                    console.error("Session corrompue", e);
+                    localStorage.clear();
+                }
+            }
+            setLoading(false); // On ne libère le chargement qu'APRES avoir tenté de restaurer l'user
+        }
+    };
+    initAuth();
+}, []);
+    /*useEffect(() => {
         const initAuth = () => {
             if (typeof window !== "undefined") {
                 const token = localStorage.getItem('token');
@@ -27,7 +53,7 @@ export const AuthProvider = ({ children }) => {
             }
         };
         initAuth();
-    }, []);
+    }, []);*/
     const login = async (email, password) => {
         try {
             const data = await userService.login(email, password);

@@ -99,7 +99,6 @@ export default function AddEventPage() {
           <h2 className="text-xl font-black tracking-tight flex items-center justify-center gap-3">
             <CheckCircle2 size={24} /> Créer un événement
           </h2>
-          <p className="text-blue-100/70 text-xs mt-1 font-medium">Publiez votre activité avec dates et tarifs.</p>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-5">

@@ -1,32 +1,31 @@
+"use client";
 
-"use client"; 
-
-
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import LoginPage from "./login/page.js";
 import { useAuth } from "./services/AuthContext.js";
 
 export default function Home() {
-  const { isAuthenticated, loading, logout } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
+  const router = useRouter();
+  useEffect(() => {
+    if (!loading && isAuthenticated) {
+      router.push("/events");
+    }
+  }, [isAuthenticated, loading, router]);
 
   if (loading) {
-    return <div style={{ display: 'flex', justifyContent: 'center', marginTop: '50px' }}>Chargement...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#002FA7]"></div>
+          <p className="text-gray-500 font-medium animate-pulse">Vérification de la session...</p>
+        </div>
+      </div>
+    );
   }
-
   if (!isAuthenticated) {
     return <LoginPage />;
   }
-
-  return (
-    <main style={{ padding: '20px' }}>
-      <h1>Bienvenue sur votre Tableau de Bord</h1>
-      <p>Vous êtes maintenant authentifié !</p>
-      
-      <button 
-        onClick={logout}
-        style={{ padding: '10px', backgroundColor: '#ff4444', color: 'white', border: 'none', cursor: 'pointer' }}
-      >
-        Se déconnecter
-      </button>
-    </main>
-  );
+  return null;
 }
